@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t fpingpoh/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true fpingpoh/react-test npm test
+
+after_success:
+  - docker build -t fpingpoh/multi-client ./client
+  - docker build -t fpingpoh/multi-nginx ./nginx
+  - docker build -t fpingpoh/multi-server ./server
+  - docker build -t fpingpoh/multi-worker ./worker
+
+  # Docker CLI Login
+  - echo "$password"   docker login -u "$docker_id" --password-stdin
+
+  # push images to docker hub
+  - docker push fpingpoh/multi-client
+  - docker push fpingpoh/multi-nginx
+  - docker push fpingpoh/multi-server
+  - docker push fpingpoh/multi-worker
+
